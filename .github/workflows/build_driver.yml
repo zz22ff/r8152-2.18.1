@@ -75,3 +75,4 @@ jobs:
         asset_path: r8152-2.18.1.ipk
         asset_name: r8152-2.18.1.ipk
         asset_content_type: application/octet-stream
+
