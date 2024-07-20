@@ -29,21 +29,28 @@ jobs:
       run: |
         mkdir -p ipk_package/r8152-2.18.1/CONTROL
         mkdir -p ipk_package/r8152-2.18.1/lib/modules/$(uname -r)/kernel/drivers/net/usb/
-        cp r8152-2.18.1/r8152.ko ipk_package/r8152-2.18.1/lib/modules/$(uname -r)/kernel/drivers/net/usb/
+        cp r8152.ko ipk_package/r8152-2.18.1/lib/modules/$(uname -r)/kernel/drivers/net/usb/
 
-        echo "Package: r8152" > ipk_package/r8152-2.18.1/CONTROL/control
-        echo "Version: 2.18.1" >> ipk_package/r8152-2.18.1/CONTROL/control
-        echo "Description: Realtek r8152 2.5G USB Ethernet driver" >> ipk_package/r8152-2.18.1/CONTROL/control
-        echo "Maintainer: Your Name <your.email@example.com>" >> ipk_package/r8152-2.18.1/CONTROL/control
-        echo "Architecture: $(uname -m)" >> ipk_package/r8152-2.18.1/CONTROL/control
+        cat <<EOF > ipk_package/r8152-2.18.1/CONTROL/control
+        Package: r8152
+        Version: 2.18.1
+        Architecture: $(dpkg --print-architecture)
+        Maintainer: Your Name <your.email@example.com>
+        Description: Realtek r8152 2.5G USB Ethernet driver
+        EOF
 
-        echo "#!/bin/sh" > ipk_package/r8152-2.18.1/CONTROL/postinst
-        echo "depmod" >> ipk_package/r8152-2.18.1/CONTROL/postinst
-        echo "modprobe r8152" >> ipk_package/r8152-2.18.1/CONTROL/postinst
+        cat <<EOF > ipk_package/r8152-2.18.1/CONTROL/postinst
+        #!/bin/sh
+        depmod
+        modprobe r8152
+        EOF
         chmod +x ipk_package/r8152-2.18.1/CONTROL/postinst
 
         cd ipk_package
-        tar -czvf r8152-2.18.1.ipk r8152-2.18.1
+        tar --owner=0 --group=0 -czvf data.tar.gz -C r8152-2.18.1 .
+        tar --owner=0 --group=0 -czvf control.tar.gz -C r8152-2.18.1/CONTROL .
+        echo "2.0" > debian-binary
+        ar rcs r8152-2.18.1.ipk control.tar.gz data.tar.gz debian-binary
 
     - name: Upload IPK package
       uses: actions/upload-artifact@v2
