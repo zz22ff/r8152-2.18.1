@@ -1,0 +1,52 @@
+name: Build Realtek r8152 Driver
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y build-essential linux-headers-$(uname -r) fakeroot
+
+    - name: Build driver
+      run: |
+        cd r8152-2.18.1
+        make clean
+        make
+
+    - name: Create IPK package
+      run: |
+        mkdir -p ipk_package/r8152-2.18.1/CONTROL
+        mkdir -p ipk_package/r8152-2.18.1/lib/modules/$(uname -r)/kernel/drivers/net/usb/
+        cp r8152-2.18.1/r8152.ko ipk_package/r8152-2.18.1/lib/modules/$(uname -r)/kernel/drivers/net/usb/
+
+        echo "Package: r8152" > ipk_package/r8152-2.18.1/CONTROL/control
+        echo "Version: 2.18.1" >> ipk_package/r8152-2.18.1/CONTROL/control
+        echo "Description: Realtek r8152 2.5G USB Ethernet driver" >> ipk_package/r8152-2.18.1/CONTROL/control
+        echo "Maintainer: Your Name <your.email@example.com>" >> ipk_package/r8152-2.18.1/CONTROL/control
+        echo "Architecture: $(uname -m)" >> ipk_package/r8152-2.18.1/CONTROL/control
+
+        echo "#!/bin/sh" > ipk_package/r8152-2.18.1/CONTROL/postinst
+        echo "depmod" >> ipk_package/r8152-2.18.1/CONTROL/postinst
+        echo "modprobe r8152" >> ipk_package/r8152-2.18.1/CONTROL/postinst
+        chmod +x ipk_package/r8152-2.18.1/CONTROL/postinst
+
+        cd ipk_package
+        tar -czvf r8152-2.18.1.ipk r8152-2.18.1
+
+    - name: Upload IPK package
+      uses: actions/upload-artifact@v2
+      with:
+        name: r8152-2.18.1-ipk
+        path: ipk_package/r8152-2.18.1.ipk
