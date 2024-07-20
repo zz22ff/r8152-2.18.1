@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y build-essential linux-headers-$(uname -r) fakeroot
@@ -31,32 +31,29 @@ jobs:
         mkdir -p ipk_package/r8152-2.18.1/lib/modules/$(uname -r)/kernel/drivers/net/usb/
         cp r8152.ko ipk_package/r8152-2.18.1/lib/modules/$(uname -r)/kernel/drivers/net/usb/
 
-        cat <<EOF > ipk_package/r8152-2.18.1/CONTROL/control
+        cat <<EOT > ipk_package/r8152-2.18.1/CONTROL/control
         Package: r8152
         Version: 2.18.1
-        Architecture: $(dpkg --print-architecture)
-        Maintainer: Your Name <your.email@example.com>
         Description: Realtek r8152 2.5G USB Ethernet driver
-        EOF
+        Maintainer: Your Name <your.email@example.com>
+        Architecture: $(uname -m)
+        EOT
 
-        cat <<EOF > ipk_package/r8152-2.18.1/CONTROL/postinst
+        cat <<EOT > ipk_package/r8152-2.18.1/CONTROL/postinst
         #!/bin/sh
         depmod
         modprobe r8152
-        EOF
+        EOT
         chmod +x ipk_package/r8152-2.18.1/CONTROL/postinst
 
         cd ipk_package
-        tar --owner=0 --group=0 -czvf data.tar.gz -C r8152-2.18.1 .
-        tar --owner=0 --group=0 -czvf control.tar.gz -C r8152-2.18.1/CONTROL .
-        echo "2.0" > debian-binary
-        ar rcs r8152-2.18.1.ipk control.tar.gz data.tar.gz debian-binary
+        tar -czvf ../r8152-2.18.1.ipk r8152-2.18.1
 
     - name: Upload IPK package
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: r8152-2.18.1-ipk
-        path: ipk_package/r8152-2.18.1.ipk
+        path: r8152-2.18.1.ipk
 
     - name: Create GitHub Release
       id: create_release
@@ -75,6 +72,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ipk_package/r8152-2.18.1.ipk
+        asset_path: r8152-2.18.1.ipk
         asset_name: r8152-2.18.1.ipk
         asset_content_type: application/octet-stream
