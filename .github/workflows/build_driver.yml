@@ -29,7 +29,9 @@ jobs:
       run: |
         mkdir -p ipk_package/r8152-2.18.1/CONTROL
         mkdir -p ipk_package/r8152-2.18.1/lib/modules/$(uname -r)/kernel/drivers/net/usb/
-        cp r8152.ko ipk_package/r8152-2.18.1/lib/modules/$(uname -r)/kernel/drivers/net/usb/
+
+        # 找到生成的 r8152.ko 文件并复制到目标目录
+        find . -name 'r8152.ko' -exec cp {} ipk_package/r8152-2.18.1/lib/modules/$(uname -r)/kernel/drivers/net/usb/ \;
 
         cat <<EOT > ipk_package/r8152-2.18.1/CONTROL/control
         Package: r8152
@@ -75,4 +77,3 @@ jobs:
         asset_path: r8152-2.18.1.ipk
         asset_name: r8152-2.18.1.ipk
         asset_content_type: application/octet-stream
-
