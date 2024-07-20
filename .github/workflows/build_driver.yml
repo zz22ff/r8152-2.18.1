@@ -38,7 +38,7 @@ jobs:
         Version: 2.18.1
         Description: Realtek r8152 2.5G USB Ethernet driver
         Maintainer: Your Name <your.email@example.com>
-        Architecture: $(uname -m)
+        Architecture: x86_64
         EOT
 
         cat <<EOT > ipk_package/r8152-2.18.1/CONTROL/postinst
